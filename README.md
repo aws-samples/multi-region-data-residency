@@ -43,9 +43,9 @@ This project contains a `package.json` file in two different folder:
 
 Navigate to each of the folders and run `npm install`
 
-#### 4. Configure your stack (optional)
+#### 4. Configure your stack (required)
 
-Open `cdk/bin/multi-region-app.ts` and adjust the parameters to deploy the application. This includes the regions to deploy and creating a Route53 Hosted Zone.
+Open `cdk/bin/multi-region-app.ts` and adjust the parameters to deploy the application. This includes the regions to deploy and creating a Route53 Hosted Zone corresponding to your domain.
 
 ```
 // List of Region codes to deploy the application to
