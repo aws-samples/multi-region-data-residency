@@ -55,6 +55,21 @@ export default function App() {
   }
   useEffect(fetchConfig, []);
 
+  const stackCountryEmoji = 
+    stackCountry === 'Australia' ? 
+    '🇦🇺' : stackCountry === 'United Kingdom' ? 
+    '🇬🇧' : stackCountry === 'United States' ? 
+    '🇺🇸' : stackCountry === 'Singapore' ? 
+    '🇸🇬' : '';
+
+  const handleRegionChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const newRegion = e.target.value;
+    const stackCountry = getCountryFromRegion(newRegion);
+    setRegion(newRegion);
+    setStackCountry(stackCountry);
+    setCountry(stackCountry);
+  }
+
   const CountryWarning = (props: { country: string, stackCountry: string }) => {
     const { country, stackCountry } = props;
     if ( country !== stackCountry )
@@ -110,7 +125,8 @@ export default function App() {
       
       <div style={{ padding: '25px 0', marginBottom: '40px',  textAlign: 'center' }}>
         <Heading level={1} style={{ marginBottom: '10px' }}>Multi-Region Demo </Heading>
-        <Heading level={4}>Region: {region} ({stackCountry})</Heading>
+        <Heading level={4}>{stackCountry} {stackCountryEmoji}</Heading>
+        <div style={{ marginTop: '8px', fontSize: '14px', color: 'gray' }}>AWS Region: {region}</div>
       </div>
 
       <Authenticator
