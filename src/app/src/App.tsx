@@ -25,6 +25,11 @@ const getCountryFromRegion = (region: string) : string => {
   return '';
 }
 
+const getRegionFromCountry = (country: string) : string => {
+  // Find the region (value) based on the key of countryToRegion
+  return countryToRegion[country];
+}
+
 export default function App() {
   const [region, setRegion] = useState('');
   const [stackCountry, setStackCountry] = useState('');
@@ -45,38 +50,33 @@ export default function App() {
         "aws_user_pools_web_client_id": userPoolClientId,
       }
       const mergedConfig = { ...awsExports, ...runtimeConfig  };
-      const stackCountry = getCountryFromRegion(region);
+      const setCountryBasedOnRegion = getCountryFromRegion(region);
       setRegion(region);
-      setStackCountry(stackCountry);
-      setCountry(stackCountry);
+      setStackCountry(setCountryBasedOnRegion);
+      setCountry(setCountryBasedOnRegion);
       Amplify.configure(mergedConfig);
     })
     .catch((e) => console.log('Cannot fetch config.json'));
   }
   useEffect(fetchConfig, []);
 
+  // Fun: Emoji visualiation for country
+  // (Thanks to Amazon CodeWhisperer)
   const stackCountryEmoji = 
-    stackCountry === 'Australia' ? 
-    '🇦🇺' : stackCountry === 'United Kingdom' ? 
-    '🇬🇧' : stackCountry === 'United States' ? 
-    '🇺🇸' : stackCountry === 'Singapore' ? 
-    '🇸🇬' : '';
-
-  const handleRegionChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const newRegion = e.target.value;
-    const stackCountry = getCountryFromRegion(newRegion);
-    setRegion(newRegion);
-    setStackCountry(stackCountry);
-    setCountry(stackCountry);
-  }
+    stackCountry === 'Australia' ? '🇦🇺' : 
+    stackCountry === 'United Kingdom' ? '🇬🇧' : 
+    stackCountry === 'United States' ? '🇺🇸' : 
+    stackCountry === 'Singapore' ? '🇸🇬' : 
+    '';
 
   const CountryWarning = (props: { country: string, stackCountry: string }) => {
     const { country, stackCountry } = props;
+    const countryWebsite = `https://${getRegionFromCountry(country)}.mystartup.com/`; // TODO: Change to actual domain
     if ( country !== stackCountry )
       return(
         <>
           <Alert variation="warning">
-            You are signing up to our {stackCountry} website. Please select <b>{stackCountry}</b> to continue or sign up separately on our {country} website.
+            You are signing up to our {stackCountry} website. Please select <b>{stackCountry}</b> to continue or sign up separately on our <a rel="noreferrer" target="_blank" href={countryWebsite}>{country}</a> website.
           </Alert>
         </>
       );

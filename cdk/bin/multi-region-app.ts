@@ -7,14 +7,15 @@ import StaticSiteStack from '../lib/static-site-stack';
 
 const app = new cdk.App();
 
-const account = process.env.CDK_DEFAULT_ACCOUNT;
 const REGIONS = process.env.REGIONS || 'ap-southeast-2, us-east-2, eu-west-1';
-const regionsToDeploy = REGIONS.split(',').map((r) => r.trim());
+const account = process.env.CDK_DEFAULT_ACCOUNT;
 const siteDomain = process.env.SITEDOMAIN || '';
 const hostedZoneId = process.env.HOSTEDZONEID || '';
 
+const regionsToDeploy = REGIONS.split(',').map((r) => r.trim());
+
 // Global stack
-const certStack = new CertificateStack(app, 'AppCertStack', {
+const certStack = new CertificateStack(app, 'AppCertStack-us-east-1', {
   env: {
     account,
     region: 'us-east-1',
