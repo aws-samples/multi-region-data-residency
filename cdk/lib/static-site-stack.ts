@@ -68,7 +68,7 @@ export default class StaticSiteStack extends Stack {
     // CloudFront distribution
     const distribution = new Distribution(this, 'SiteDistribution', {
       certificate,
-      domainNames: [globalSiteHost, siteHost],
+      domainNames: [siteHost],
       minimumProtocolVersion: SecurityPolicyProtocol.TLS_V1_2_2021,
       defaultRootObject: 'index.html',
       defaultBehavior: {
