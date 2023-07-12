@@ -61,7 +61,7 @@ export default function App() {
       return(
         <>
           <Alert variation="warning">
-            You are signing up to our {stackCountry} website. Please select <b>{stackCountry}</b> to continue or sign up separately our {country} website.
+            You are signing up to our {stackCountry} website. Please select <b>{stackCountry}</b> to continue or sign up separately on our {country} website.
           </Alert>
         </>
       );
