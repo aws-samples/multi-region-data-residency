@@ -116,6 +116,7 @@ export default class StaticSiteStack extends Stack {
       region: Stack.of(this).region,
       userPoolId,
       userPoolClientId,
+      siteDomain,
     };
 
     // Deploy site contents to S3 bucket

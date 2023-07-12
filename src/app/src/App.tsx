@@ -31,6 +31,7 @@ const getRegionFromCountry = (country: string) : string => {
 }
 
 export default function App() {
+  const [siteDomain, setSiteDomain] = useState('mystartup.com');
   const [region, setRegion] = useState('');
   const [stackCountry, setStackCountry] = useState('');
   const [country, setCountry] = useState('');
@@ -42,7 +43,7 @@ export default function App() {
     fetch('/config.json')
     .then((response) => response.status === 200 && response.json())
     .then((context) => {
-      const { region, userPoolId, userPoolClientId } = context;
+      const { siteDomain, region, userPoolId, userPoolClientId } = context;
       const runtimeConfig = {
         "aws_project_region": region,
         "aws_cognito_region": region,
@@ -51,6 +52,7 @@ export default function App() {
       }
       const mergedConfig = { ...awsExports, ...runtimeConfig  };
       const setCountryBasedOnRegion = getCountryFromRegion(region);
+      setSiteDomain(siteDomain);
       setRegion(region);
       setStackCountry(setCountryBasedOnRegion);
       setCountry(setCountryBasedOnRegion);
@@ -71,7 +73,7 @@ export default function App() {
 
   const CountryWarning = (props: { country: string, stackCountry: string }) => {
     const { country, stackCountry } = props;
-    const countryWebsite = `https://${getRegionFromCountry(country)}.mystartup.com/`; // TODO: Change to actual domain
+    const countryWebsite = `https://${getRegionFromCountry(country)}.${siteDomain}/`; // TODO: Change to actual domain
     if ( country !== stackCountry )
       return(
         <>
