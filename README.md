@@ -45,7 +45,7 @@ Navigate to each of the folders and run `npm install`
 
 #### 4. Configure your stack (optional)
 
-Open `cdk/bin/multi-region-app.ts` and adjust the Regions to deploy the application.
+Open `cdk/bin/multi-region-app.ts` and adjust the parameters to deploy the application. This includes the regions to deploy and creating a Route53 Hosted Zone.
 
 ```
 // List of Region codes to deploy the application to
@@ -59,7 +59,6 @@ Navigate to the `src/app` folder and build the react app to static files using:
 ```
 npm run build 
 ```
-
 
 When ready to deploy, navigate to the `cdk` folder and run the following commands. 
 
