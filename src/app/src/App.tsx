@@ -1,6 +1,6 @@
 import { Amplify } from 'aws-amplify';
 
-import { Authenticator, Button, Heading, SelectField, useAuthenticator } from '@aws-amplify/ui-react';
+import { Alert, Authenticator, Button, Heading, SelectField, useAuthenticator } from '@aws-amplify/ui-react';
 import '@aws-amplify/ui-react/styles.css';
 import awsExports from './aws-exports';
 import { useEffect, useState } from 'react';
@@ -9,6 +9,7 @@ import { useEffect, useState } from 'react';
 let countryToRegion : {[key: string]: string};
 
 countryToRegion = {
+  'Singapore': 'ap-southeast-1', 
   'Australia': 'ap-southeast-2',
   'United Kingdom': 'eu-west-1',
   'United States': 'us-east-2',
@@ -24,7 +25,13 @@ const getCountryFromRegion = (region: string) : string => {
   return '';
 }
 
+const getRegionFromCountry = (country: string) : string => {
+  // Find the region (value) based on the key of countryToRegion
+  return countryToRegion[country];
+}
+
 export default function App() {
+  const [siteDomain, setSiteDomain] = useState('mystartup.com');
   const [region, setRegion] = useState('');
   const [stackCountry, setStackCountry] = useState('');
   const [country, setCountry] = useState('');
@@ -36,7 +43,7 @@ export default function App() {
     fetch('/config.json')
     .then((response) => response.status === 200 && response.json())
     .then((context) => {
-      const { region, userPoolId, userPoolClientId } = context;
+      const { siteDomain, region, userPoolId, userPoolClientId } = context;
       const runtimeConfig = {
         "aws_project_region": region,
         "aws_cognito_region": region,
@@ -44,15 +51,40 @@ export default function App() {
         "aws_user_pools_web_client_id": userPoolClientId,
       }
       const mergedConfig = { ...awsExports, ...runtimeConfig  };
-      const stackCountry = getCountryFromRegion(region);
+      const setCountryBasedOnRegion = getCountryFromRegion(region);
+      setSiteDomain(siteDomain);
       setRegion(region);
-      setStackCountry(stackCountry);
-      setCountry(stackCountry);
+      setStackCountry(setCountryBasedOnRegion);
+      setCountry(setCountryBasedOnRegion);
       Amplify.configure(mergedConfig);
     })
     .catch((e) => console.log('Cannot fetch config.json'));
   }
   useEffect(fetchConfig, []);
+
+  // Fun: Emoji visualiation for country
+  // (Thanks to Amazon CodeWhisperer)
+  const stackCountryEmoji = 
+    stackCountry === 'Australia' ? '🇦🇺' : 
+    stackCountry === 'United Kingdom' ? '🇬🇧' : 
+    stackCountry === 'United States' ? '🇺🇸' : 
+    stackCountry === 'Singapore' ? '🇸🇬' : 
+    '';
+
+  const CountryWarning = (props: { country: string, stackCountry: string }) => {
+    const { country, stackCountry } = props;
+    const countryWebsite = `https://${getRegionFromCountry(country)}.${siteDomain}/`; // TODO: Change to actual domain
+    if ( country !== stackCountry )
+      return(
+        <>
+          <Alert variation="warning">
+            You are signing up to our {stackCountry} website. Please select <b>{stackCountry}</b> to continue or sign up separately on our <a rel="noreferrer" target="_blank" href={countryWebsite}>{country}</a> website.
+          </Alert>
+        </>
+      );
+    else
+      return <></>
+  }
 
   const SignUpFormFields = {
     FormFields() {
@@ -81,7 +113,10 @@ export default function App() {
             <option>Australia</option>
             <option>United Kingdom</option>
             <option>United States</option>
+            <option>Singapore</option>
           </SelectField>
+
+          <CountryWarning country={country} stackCountry={stackCountry} />
         </>
       );
     },
@@ -92,7 +127,8 @@ export default function App() {
       
       <div style={{ padding: '25px 0', marginBottom: '40px',  textAlign: 'center' }}>
         <Heading level={1} style={{ marginBottom: '10px' }}>Multi-Region Demo </Heading>
-        <Heading level={4}>Region: {region} ({stackCountry})</Heading>
+        <Heading level={4}>{stackCountry} {stackCountryEmoji}</Heading>
+        <div style={{ marginTop: '8px', fontSize: '14px', color: 'gray' }}>AWS Region: {region}</div>
       </div>
 
       <Authenticator

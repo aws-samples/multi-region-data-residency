@@ -1,5 +1,5 @@
 import {
-  CfnOutput, RemovalPolicy, Stack, StackProps,
+  CfnOutput, CfnResource, RemovalPolicy, Stack, StackProps,
 } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import { AttributeType, BillingMode, Table } from 'aws-cdk-lib/aws-dynamodb';
@@ -193,9 +193,11 @@ export default class MultiRegionAppStack extends Stack {
 
     // DynamoDB table to store user residency on the AWS region
     if (region === primaryRegion) {
-      new Table(this, tableName, {
+      const ddbGlobalTableRemovalPolicy = RemovalPolicy.RETAIN;
+
+      const globalTable = new Table(this, tableName, {
         billingMode: BillingMode.PAY_PER_REQUEST,
-        removalPolicy: RemovalPolicy.DESTROY, // Not for production use
+        removalPolicy: ddbGlobalTableRemovalPolicy, // Retain DynamoDB table
         tableName,
         partitionKey: {
           name: 'userId',
@@ -207,6 +209,12 @@ export default class MultiRegionAppStack extends Stack {
         },
         replicationRegions: regionCodesToReplicate,
       });
+
+      const customReplicaResource = globalTable.node.children.find((child) => 
+        (child as any).resource?.cfnResourceType === 'Custom::DynamoDBReplica'
+      ) as CfnResource;
+
+      customReplicaResource.applyRemovalPolicy(ddbGlobalTableRemovalPolicy);
     } else {
       Table.fromTableName(this, tableName, tableName);
     }

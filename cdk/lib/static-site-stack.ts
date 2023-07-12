@@ -52,6 +52,9 @@ export default class StaticSiteStack extends Stack {
     const siteHost = `${siteSubDomain}.${siteDomain}`;
     new CfnOutput(this, 'Site', { value: `https://${siteHost}` });
 
+    const globalSiteHost = `app.${siteDomain}`;
+    new CfnOutput(this, 'GlobalSite', { value: `https://${globalSiteHost}` });
+
     // Content bucket
     const bucket = new Bucket(this, 'StaticSiteBucket', {
       bucketName: `app-static-${account}-${region}`,
@@ -77,33 +80,43 @@ export default class StaticSiteStack extends Stack {
     });
     new CfnOutput(this, 'DistributionId', { value: distribution.distributionId });
 
-    // TODO: Add geolocation routing
-
     // Route53 alias record for the CloudFront distribution
     const zone = HostedZone.fromHostedZoneAttributes(this, 'Zone', {
       zoneName: siteDomain,
       hostedZoneId,
     });
 
-    const dnsRecord = new ARecord(this, `SiteAliasRecord-${region}`, {
+    // Insert the A record for the region-based domain e.g. ap-southeast-2.mystartup.com
+    new ARecord(this, `SiteRegionRecord-${region}`, {
       zone,
       recordName: siteHost,
       target: RecordTarget.fromAlias(new CloudFrontTarget(distribution)),
     });
 
-    const recordSet = dnsRecord.node.defaultChild as CfnRecordSet;
+    // Insert the A record for the global domain e.g. mystartup.com
+    const globalDnsRecord = new ARecord(this, `SiteAliasRecord-${region}`, {
+      zone,
+      recordName: globalSiteHost,
+      target: RecordTarget.fromAlias(new CloudFrontTarget(distribution)),
+    });
+
+    // Insert the configuration for Latency-based Routing
+    // TODO: Switch to geolocation routing
+    const recordSet = globalDnsRecord.node.defaultChild as CfnRecordSet;
     recordSet.region = region;
     recordSet.setIdentifier = `Site-${region}`;
 
-    // Get cognito parameters
+    // Get Cognito parameters from SSM
     const userPoolId = StringParameter.valueForStringParameter(this, 'CognitoUserPoolId');
     const userPoolClientId = StringParameter.valueForStringParameter(this, 'CognitoUserPoolClientId');
 
     // Create a config metadata
+    // This will be consumed by the React app using fetch()
     const config = {
       region: Stack.of(this).region,
       userPoolId,
       userPoolClientId,
+      siteDomain,
     };
 
     // Deploy site contents to S3 bucket
@@ -114,6 +127,7 @@ export default class StaticSiteStack extends Stack {
       distributionPaths: ['/*'],
     });
 
+    // Output resources to stack for reference
     this.bucket = bucket;
     this.distribution = distribution;
   }
