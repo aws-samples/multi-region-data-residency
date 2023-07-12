@@ -35,7 +35,7 @@ export default class MultiRegionAppStack extends Stack {
 
     const { region, account } = Stack.of(this);
     const siteHost = `${siteSubDomain}.${siteDomain}`;
-    const tableName = 'UserResidency';
+    const tableName = 'UserResidency2';
 
     // Cognito User Pool
     const userPool = new UserPool(this, 'AppUserPool', {

@@ -70,7 +70,7 @@ Before deploying the CDK stack the following environment variables need to be de
 Regions - Define which regions to deploy the multi-region stack, by default we will deploy to the ap-southeast-2 (Sydney), us-east-2 (Ohio) and eu-west-1 (N. California) for the demonstration.
 
 ```
-export REGIONS="ap-southeast-2, us-east-2, eu-west-1"
+export REGIONS="ap-southeast-2, us-east-1, eu-west-1"
 ```
 
 Hosted Zone Id - Specify the hosted zone ID from step 4
@@ -91,9 +91,9 @@ AWS Account ID -- Specify the primary AWS Account ID which will be used to deplo
 export CDK_DEFAULT_ACCOUNT="YOUR_AWS_ACCOUNT_ID"
 ```
 
-#### 5. Deploy your application
+#### 5. Deploy static web-application
 
-Navigate to the `src/app` folder and build the react app to static files using:
+Navigate to the `src/app` folder and build the static React app using:
 
 ```
 npm run build 
@@ -106,7 +106,7 @@ When ready to deploy, navigate to the `cdk` folder and run the following command
 ```
 cdk synth 
 # replace account id and Region codes (us-east-1 required for SSL certificate)
-cdk bootstrap 123456789012/us-east-1 123456789012/us-west-1 123456789012/ap-southeast-2 
+cdk bootstrap $CDK_DEFAULT_ACCOUNT/us-east-1 $CDK_DEFAULT_ACCOUNT/eu-west-1 $CDK_DEFAULT_ACCOUNT/ap-southeast-2 
 cdk deploy --all
 ```
 
