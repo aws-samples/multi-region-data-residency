@@ -4,18 +4,14 @@ import * as cdk from 'aws-cdk-lib';
 import MultiRegionAppStack from '../lib/multi-region-app-stack';
 import CertificateStack from '../lib/certificate-stack';
 import StaticSiteStack from '../lib/static-site-stack';
-import { exit } from 'process';
 
 const app = new cdk.App();
 
 const account = process.env.CDK_DEFAULT_ACCOUNT;
-
-const REGIONS = process.env.REGIONS || "";
-
-const regionsToDeploy = REGIONS.split(",").map((r) => r.trim())
-
-const siteDomain = process.env.SITEDOMAIN || "";
-const hostedZoneId = process.env.HOSTEDZONEID || "";
+const REGIONS = process.env.REGIONS || 'ap-southeast-2, us-east-2, eu-west-1';
+const regionsToDeploy = REGIONS.split(',').map((r) => r.trim());
+const siteDomain = process.env.SITEDOMAIN || '';
+const hostedZoneId = process.env.HOSTEDZONEID || '';
 
 // Global stack
 const certStack = new CertificateStack(app, 'AppCertStack', {

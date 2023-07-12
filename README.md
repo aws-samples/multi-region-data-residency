@@ -85,6 +85,12 @@ Site Domain - Specify the root domain which will be used (e.g mystartup.com)
 export SITEDOMAIN="mystartup.com"
 ```
 
+AWS Account ID -- Specify the primary AWS Account ID which will be used to deploy the stack
+
+```
+export CDK_DEFAULT_ACCOUNT="YOUR_AWS_ACCOUNT_ID"
+```
+
 #### 5. Deploy your application
 
 Navigate to the `src/app` folder and build the react app to static files using:
