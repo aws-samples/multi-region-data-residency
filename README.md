@@ -1,6 +1,8 @@
 # Building a multi-region architecture with data residency 
 
-This repository demonstrates how to deploy a multi-region architecture with data residency for sensitive data, such as Personally Identifiable Information (PII) or Personal Health Information (PHI) data. To maintain data residency for each region, the architecture operates under a [silo model](https://docs.aws.amazon.com/wellarchitected/latest/saas-lens/silo-pool-and-bridge-models.html) with its own infrastructure stack per region. The architecture is suitable for businesses interested in isolating customer PII/PHI data to a specific region, expanding globally from a single-region architecture, and/or operating in strict regulatory or compliance environments. 
+This repository demonstrates how to deploy a multi-region architecture with data residency for sensitive data, such as Personally Identifiable Information (PII) or Personal Health Information (PHI) data. To maintain data residency for each region, the architecture operates under a [silo model](https://docs.aws.amazon.com/wellarchitected/latest/saas-lens/silo-pool-and-bridge-models.html) with its own isolated infrastructure stack per region.
+
+The architecture is suitable for businesses in specific verticals such as Health-care / Life-sciences (HCLS) and FinTech, with business requirements to isolate customer PII/PHI data to a specific region, expanding globally from a single-region architecture, and/or operating in strict regulatory or compliance environments.
 
 For more details, see [Video: Architectures to Scale Your Startup to Multiple Regions](https://www.twitch.tv/awsonair/video/1851203333).
 
@@ -28,7 +30,8 @@ git clone git@github.com:aws-samples/multi-region-data-residency
 ```
 .
 ├── cdk             CDK code that defines our environment
-├── img             Architecture image
+├── assets          
+    └── images      Image assets
 └── src
     └── lambda      Handler code of the lambda functions
     └── app         Demo react app 
@@ -36,20 +39,50 @@ git clone git@github.com:aws-samples/multi-region-data-residency
 
 #### 3. Install dependencies
 
-node.js dependencies are declared in a `package.json`.
-This project contains a `package.json` file in two different folder: 
+The node.js dependencies are declared in a `package.json`.
+This project contains a `package.json` file in two different folders:
+
 - `cdk`: Dependencies required to deploy your stack with the CDK
 - `src`: Dependencies required for the Lambda function, i.e. TypeScript types for AWS SDK 
 
-Navigate to each of the folders and run `npm install`
-
-#### 4. Configure your stack (required)
-
-Open `cdk/bin/multi-region-app.ts` and adjust the parameters to deploy the application. This includes the regions to deploy and creating a Route53 Hosted Zone corresponding to your domain.
+Install the required dependencies:
 
 ```
-// List of Region codes to deploy the application to
-const regionsToDeploy = ['us-west-1', 'ap-southeast-2'];
+cd cdk && npm install
+cd ..
+cd src && npm install
+```
+
+#### 4. Create Route53 hosted zone
+
+Before deploying the stack, a domain-name must be configured in Amazon Route 53 which will be used to configure the CDK stack and related sub-domains for the multi-region deployment.
+
+For testing purposes a new domain can be registered, alternatively you can use an existing domain-name provisioned within your AWS Account, or create a new sub-domain with delegated NS records to Route 53 (e.g myapp.startup.com as a new Public Hosted zone).
+
+![Hosted zone config](./assets/imgs/hosted-zone.png)
+
+Note the `Hosted zone ID` which will be used in the following step.
+
+#### 5. Configure environment settings
+
+Before deploying the CDK stack the following environment variables need to be defined.
+
+Regions - Define which regions to deploy the multi-region stack, by default we will deploy to the ap-southeast-2 (Sydney), us-east-2 (Ohio) and eu-west-1 (N. California) for the demonstration.
+
+```
+export REGIONS="ap-southeast-2, us-east-2, eu-west-1"
+```
+
+Hosted Zone Id - Specify the hosted zone ID from step 4
+
+```
+export HOSTEDZONEID="Z2938XXZZZ"
+```
+
+Site Domain - Specify the root domain which will be used (e.g mystartup.com)
+
+```
+export SITEDOMAIN="mystartup.com"
 ```
 
 #### 5. Deploy your application

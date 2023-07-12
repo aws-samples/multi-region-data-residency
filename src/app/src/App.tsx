@@ -10,7 +10,7 @@ let countryToRegion : {[key: string]: string};
 countryToRegion = {
   'Australia': 'ap-southeast-2',
   'United Kingdom': 'eu-west-1',
-  'United States': 'us-west-1',
+  'United States': 'us-east-2',
 };
 
 const getCountryFromRegion = (region: string) : string => {
