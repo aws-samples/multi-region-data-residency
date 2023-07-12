@@ -54,15 +54,21 @@ const regionsToDeploy = ['us-west-1', 'ap-southeast-2'];
 
 #### 5. Deploy your application
 
-Navigate to the `cdk` folder and run the following commands. 
+Navigate to the `src/app` folder and build the react app to static files using:
 
-`cdk synth` will synthesize a CloudFormation template from your CDK code. If you haven't worked with CDK in your account before, you need to [bootstrap](https://docs.aws.amazon.com/cdk/v2/guide/bootstrapping.html) the required resources for the CDK with `cdk bootstrap`, otherwise skip this step. Note that bootstrapping needs to be performed in every Region you plan to deploy to. You can then deploy the template with `cdk deploy`.
+```
+npm run build 
+```
 
+
+When ready to deploy, navigate to the `cdk` folder and run the following commands. 
+
+`cdk synth` will synthesize a CloudFormation template from your CDK code. If you haven't worked with CDK in your account before, you need to [bootstrap](https://docs.aws.amazon.com/cdk/v2/guide/bootstrapping.html) the required resources for the CDK with `cdk bootstrap`, otherwise skip this step. Note that bootstrapping needs to be performed in every Region you plan to deploy to. You can then deploy the template with `cdk deploy`. 
 
 ```
 cdk synth 
-# replace account id and Region codes
-cdk bootstrap 123456789012/us-east-1 123456789012/eu-west-1 
+# replace account id and Region codes (us-east-1 required for SSL certificate)
+cdk bootstrap 123456789012/us-east-1 123456789012/us-west-1 123456789012/ap-southeast-2 
 cdk deploy --all
 ```
 

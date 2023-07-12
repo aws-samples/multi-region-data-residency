@@ -1,76 +1,44 @@
 import {
-  CfnOutput, Duration, RemovalPolicy, Stack, StackProps,
+  CfnOutput, RemovalPolicy, Stack, StackProps,
 } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import { AttributeType, BillingMode, Table } from 'aws-cdk-lib/aws-dynamodb';
 import {
-  UserPool, VerificationEmailStyle, UserPoolClient, AccountRecovery,
+  UserPool, VerificationEmailStyle, UserPoolClient, AccountRecovery, StringAttribute, ClientAttributes,
 } from 'aws-cdk-lib/aws-cognito';
 import * as CustomResources from 'aws-cdk-lib/custom-resources';
 import * as iam from 'aws-cdk-lib/aws-iam';
-import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
-import { Runtime, Tracing } from 'aws-cdk-lib/aws-lambda';
-import { staticSite } from './static-site';
+import { Certificate } from 'aws-cdk-lib/aws-certificatemanager';
+import { StringParameter } from 'aws-cdk-lib/aws-ssm';
+import { SimpleLambda } from './simple-lambda';
 // import path = require('path');
-
-export interface SimpleLambdaProps {
-  memorySize?: number;
-  reservedConcurrentExecutions?: number;
-  runtime?: Runtime;
-  name: string;
-  description: string;
-  entryFilename: string;
-  handler?: string;
-  timeout?: Duration;
-  envVariables?: any;
-}
-
-export class SimpleLambda extends Construct {
-  public fn: NodejsFunction;
-
-  constructor(scope: Construct, id: string, props: SimpleLambdaProps) {
-    super(scope, id);
-
-    this.fn = new NodejsFunction(this, id, {
-      entry: `../src/lambda/${props.entryFilename}`,
-      handler: props.handler ?? 'handler',
-      runtime: props.runtime ?? Runtime.NODEJS_18_X,
-      timeout: props.timeout ?? Duration.seconds(5),
-      memorySize: props.memorySize ?? 1024,
-      tracing: Tracing.ACTIVE,
-      functionName: props.name,
-      description: props.description,
-      // depsLockFilePath: path.join(__dirname, '..', '..', 'src', 'package-lock.json'),
-      environment: props.envVariables ?? {},
-    });
-  }
-}
 
 interface MultiRegionAppStackProps extends StackProps {
   regionCodesToReplicate: string[],
   primaryRegion: string,
-  siteDomain: string,
-  hostedZoneId: string,
+  siteDomain?: string,
+  siteSubDomain?: string,
+  certificate?: Certificate,
+  hostedZoneId?: string,
 }
 
-export class MultiRegionAppStack extends Stack {
+export default class MultiRegionAppStack extends Stack {
   constructor(scope: Construct, id: string, props: MultiRegionAppStackProps) {
     super(scope, id, props);
 
-    const { env, regionCodesToReplicate, primaryRegion, siteDomain, hostedZoneId } = props;
-    const region = env?.region;
-
-    // Static Site
-    staticSite(this, `StaticSite-${region}`, {
-      env,
+    const {
+      regionCodesToReplicate,
+      primaryRegion,
       siteDomain,
-      siteSubDomain: region ?? '',
-      hostedZoneId,
-    });
-    // TODO: Add Cognito region parameters
+      siteSubDomain,
+    } = props;
+
+    const { region, account } = Stack.of(this);
+    const siteHost = `${siteSubDomain}.${siteDomain}`;
+    const tableName = 'UserResidency';
 
     // Cognito User Pool
-    const userPool = new UserPool(this, 'example-multi-region-app-user-pool', {
+    const userPool = new UserPool(this, 'AppUserPool', {
       selfSignUpEnabled: true,
       accountRecovery: AccountRecovery.PHONE_AND_EMAIL,
       userVerification: {
@@ -85,27 +53,85 @@ export class MultiRegionAppStack extends Stack {
           mutable: true,
         },
       },
-    });
-
-    // TODO: Add Cognito test users in each region
-    // TODO: Smarts to trigger Lambda pre-register
-
-    userPool.addDomain('MultiRegionAppCognitoDomain', {
-      cognitoDomain: {
-        domainPrefix: 'multi-region-app',
+      customAttributes: {
+        country: new StringAttribute({ mutable: true }),
       },
     });
 
+    // TODO: Add Cognito test users in each region (https://github.com/awesome-cdk/cdk-userpool-user)
+    // TODO: Smarts to trigger Lambda pre-register
+
+    const cognitoDomainPrefix = `app-${account}-${region}`;
+    userPool.addDomain('AppCognitoDomain', {
+      cognitoDomain: {
+        domainPrefix: cognitoDomainPrefix,
+      },
+    });
+
+    const standardCognitoAttributes = {
+      givenName: true,
+      familyName: true,
+      email: true,
+      emailVerified: true,
+      address: true,
+      birthdate: true,
+      gender: true,
+      locale: true,
+      middleName: true,
+      fullname: true,
+      nickname: true,
+      phoneNumber: true,
+      phoneNumberVerified: true,
+      profilePicture: true,
+      preferredUsername: true,
+      profilePage: true,
+      timezone: true,
+      lastUpdateTime: true,
+      website: true,
+    };
+
+    const clientReadAttributes = new ClientAttributes()
+      .withStandardAttributes(standardCognitoAttributes)
+      .withCustomAttributes(...['country']);
+
+    const clientWriteAttributes = new ClientAttributes()
+      .withStandardAttributes({
+        ...standardCognitoAttributes,
+        emailVerified: false,
+        phoneNumberVerified: false,
+      })
+      .withCustomAttributes(...['country']);
+
     const userPoolClient = new UserPoolClient(this, 'UserPoolClient', {
       userPool,
+      oAuth: {
+        callbackUrls: [
+          `https://${siteHost}`,
+          'http://localhost:3000/',
+        ],
+      },
+      readAttributes: clientReadAttributes,
+      writeAttributes: clientWriteAttributes,
     });
 
-    new CfnOutput(this, 'UserPoolId', {
+    new CfnOutput(this, 'CognitoUserPoolId', {
       value: userPool.userPoolId,
+      exportName: 'CognitoUserPoolId',
     });
 
-    new CfnOutput(this, 'UserPoolClientId', {
+    new StringParameter(this, 'ParamUserPoolId', {
+      parameterName: 'CognitoUserPoolId',
+      stringValue: userPool.userPoolId,
+    });
+
+    new CfnOutput(this, 'CognitoUserPoolClientId', {
       value: userPoolClient.userPoolClientId,
+      exportName: 'CognitoUserPoolClientId',
+    });
+
+    new StringParameter(this, 'ParamUserPoolClientId', {
+      parameterName: 'CognitoUserPoolClientId',
+      stringValue: userPoolClient.userPoolClientId,
     });
 
     // Add pre-signup Lambda Handler
@@ -113,8 +139,30 @@ export class MultiRegionAppStack extends Stack {
       entryFilename: 'pre-auth-handler.ts',
       handler: 'handleEvent',
       name: 'PreAuthHandler',
-      description: 'Handles Amazon Cognito pre sign-up Lambda trigger',
+      description: 'Handles Amazon Cognito pre auth Lambda trigger',
     });
+
+    // Add pre-signup Lambda Handler
+    const preSignUpHandlerLambda = new SimpleLambda(this, 'PreSignUpHandler', {
+      entryFilename: 'pre-sign-up-handler.ts',
+      handler: 'handleEvent',
+      name: 'PreSignUpHandler',
+      description: 'Handles Amazon Cognito pre sign-up Lambda trigger',
+      envVariables: {
+        USER_RESIDENCY_TABLE: tableName,
+      },
+    });
+
+    // Add DynamoDB PutItem IAM Role to preSignUpHandlerLambda.fn Service Role
+    preSignUpHandlerLambda.fn.addToRolePolicy(new iam.PolicyStatement(
+      {
+        actions: ['dynamodb:PutItem'],
+        resources: [
+          `arn:aws:dynamodb:${primaryRegion}:${account}:table/${tableName}`,
+          `arn:aws:dynamodb:${primaryRegion}:${account}:table/${tableName}/*`,
+        ],
+      },
+    ));
 
     // Add Cognito Lambda Triggers
     new CustomResources.AwsCustomResource(this, 'UpdateUserPool', {
@@ -126,8 +174,8 @@ export class MultiRegionAppStack extends Stack {
         parameters: {
           UserPoolId: userPool.userPoolId,
           LambdaConfig: {
-            PreAuth: preAuthHandlerLambda.fn.functionArn,
-            // TODO: Pre-Sign Up Lambda
+            PreAuthentication: preAuthHandlerLambda.fn.functionArn,
+            PreSignUp: preSignUpHandlerLambda.fn.functionArn,
           },
         },
         physicalResourceId: CustomResources.PhysicalResourceId.of(userPool.userPoolId),
@@ -140,14 +188,14 @@ export class MultiRegionAppStack extends Stack {
       sourceArn: userPool.userPoolArn,
     };
 
+    preSignUpHandlerLambda.fn.addPermission('InvokePreSignUpHandlerPermission', invokeCognitoTriggerPermission);
     preAuthHandlerLambda.fn.addPermission('InvokePreSignUpHandlerPermission', invokeCognitoTriggerPermission);
 
     // DynamoDB table to store user residency on the AWS region
-    const tableName = 'UserResidency';
     if (region === primaryRegion) {
       new Table(this, tableName, {
         billingMode: BillingMode.PAY_PER_REQUEST,
-        removalPolicy: RemovalPolicy.DESTROY,
+        removalPolicy: RemovalPolicy.DESTROY, // Not for production use
         tableName,
         partitionKey: {
           name: 'userId',

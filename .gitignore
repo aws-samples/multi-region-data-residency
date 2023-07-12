@@ -11,6 +11,8 @@ cdk.out
 
 *.iml
 .idea
+.envrc
+.env.*
 
 .DS_Store
 *.zip
