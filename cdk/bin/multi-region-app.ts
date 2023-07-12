@@ -10,13 +10,9 @@ const app = new cdk.App();
 
 const account = process.env.CDK_DEFAULT_ACCOUNT;
 
-const REGIONS = process.env.REGIONS || "ap-southeast-2, us-east-2, eu-west-1"
+const REGIONS = process.env.REGIONS || "";
 
 const regionsToDeploy = REGIONS.split(",").map((r) => r.trim())
-
-console.log(regionsToDeploy)
-
-process.exit()
 
 const siteDomain = process.env.SITEDOMAIN || "";
 const hostedZoneId = process.env.HOSTEDZONEID || "";
