@@ -6,7 +6,7 @@ For more details, see [Video: Architectures to Scale Your Startup to Multiple Re
 
 ## Solution Overview 
 
-![Diagram](img/architecture.png)
+![Multi Region Data Residency Architecture](assets/imgs/multi-region-data-residency-architecture.png)
 
 ### Prerequisites
 
