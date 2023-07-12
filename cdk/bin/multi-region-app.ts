@@ -8,7 +8,7 @@ import StaticSiteStack from '../lib/static-site-stack';
 const app = new cdk.App();
 
 const account = process.env.CDK_DEFAULT_ACCOUNT;
-const regionsToDeploy = ['ap-southeast-1']; // First region will be the primary region
+const regionsToDeploy = ['ap-southeast-2', 'eu-west-1']; // First region will be the primary region
 const siteDomain = 'aws.wirjo.com';
 const hostedZoneId = 'Z07981271ND50BK0E03QO';
 
