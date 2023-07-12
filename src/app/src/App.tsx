@@ -1,6 +1,6 @@
 import { Amplify } from 'aws-amplify';
 
-import { Authenticator, Button, Heading, SelectField, useAuthenticator } from '@aws-amplify/ui-react';
+import { Alert, Authenticator, Button, Heading, SelectField, useAuthenticator } from '@aws-amplify/ui-react';
 import '@aws-amplify/ui-react/styles.css';
 import awsExports from './aws-exports';
 import { useEffect, useState } from 'react';
@@ -9,6 +9,7 @@ import { useEffect, useState } from 'react';
 let countryToRegion : {[key: string]: string};
 
 countryToRegion = {
+  'Singapore': 'ap-southeast-1', 
   'Australia': 'ap-southeast-2',
   'United Kingdom': 'eu-west-1',
   'United States': 'us-east-2',
@@ -54,6 +55,20 @@ export default function App() {
   }
   useEffect(fetchConfig, []);
 
+  const CountryWarning = (props: { country: string, stackCountry: string }) => {
+    const { country, stackCountry } = props;
+    if ( country !== stackCountry )
+      return(
+        <>
+          <Alert variation="warning">
+            You are signing up to our {stackCountry} website. Please select <b>{stackCountry}</b> to continue or sign up separately our {country} website.
+          </Alert>
+        </>
+      );
+    else
+      return <></>
+  }
+
   const SignUpFormFields = {
     FormFields() {
       const { validationErrors } = useAuthenticator();
@@ -81,7 +96,10 @@ export default function App() {
             <option>Australia</option>
             <option>United Kingdom</option>
             <option>United States</option>
+            <option>Singapore</option>
           </SelectField>
+
+          <CountryWarning country={country} stackCountry={stackCountry} />
         </>
       );
     },
