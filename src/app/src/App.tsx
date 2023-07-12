@@ -5,6 +5,7 @@ import '@aws-amplify/ui-react/styles.css';
 import awsExports from './aws-exports';
 import { useEffect, useState } from 'react';
 
+// TODO: Globalize country to region mapping (e.g. via CDK)
 let countryToRegion : {[key: string]: string};
 
 countryToRegion = {
