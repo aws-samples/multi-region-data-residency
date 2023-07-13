@@ -15,7 +15,7 @@ const hostedZoneId = process.env.HOSTEDZONEID || '';
 const regionsToDeploy = REGIONS.split(',').map((r) => r.trim());
 
 // Global stack
-const certStack = new CertificateStack(app, 'AppCertStack-us-east-1', {
+const certStack = new CertificateStack(app, 'CertStack-us-east-1', {
   env: {
     account,
     region: 'us-east-1',
@@ -27,10 +27,10 @@ const certStack = new CertificateStack(app, 'AppCertStack-us-east-1', {
 
 // Regional stacks
 const primaryRegion = regionsToDeploy[0];
+
 regionsToDeploy.forEach((region) => {
   const regionCodesToReplicate = regionsToDeploy.filter((r) => r !== region);
   const siteSubDomain = region;
-  const { certificate } = certStack;
 
   new MultiRegionAppStack(app, `App-Backend-${region}`, {
     env: {
@@ -42,17 +42,22 @@ regionsToDeploy.forEach((region) => {
     regionCodesToReplicate,
     siteDomain,
     siteSubDomain,
-  });
-
-  new StaticSiteStack(app, `App-Frontend-${region}`, {
-    env: {
-      account,
-      region,
-    },
-    crossRegionReferences: true,
-    siteDomain,
-    siteSubDomain,
     hostedZoneId,
-    certificate,
   });
+});
+
+// Deploy the static front-end only in the primary region
+// Note Cloudfront has global Points-of-Presence (PoP) to reduce latency globally
+const { certificate } = certStack;
+
+new StaticSiteStack(app, `App-Frontend-${primaryRegion}`, {
+  env: {
+    account,
+    region: primaryRegion,
+  },
+  crossRegionReferences: true,
+  siteDomain,
+  siteSubDomain: primaryRegion,
+  hostedZoneId,
+  certificate,
 });

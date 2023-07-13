@@ -73,7 +73,7 @@ export default function App() {
 
   const CountryWarning = (props: { country: string, stackCountry: string }) => {
     const { country, stackCountry } = props;
-    const countryWebsite = `https://${getRegionFromCountry(country)}.${siteDomain}/`; // TODO: Change to actual domain
+    const countryWebsite = `https://${getRegionFromCountry(country)}.${siteDomain}/`; 
     if ( country !== stackCountry )
       return(
         <>

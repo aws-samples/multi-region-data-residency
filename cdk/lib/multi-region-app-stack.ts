@@ -1,5 +1,5 @@
 import {
-  CfnOutput, CfnResource, RemovalPolicy, Stack, StackProps,
+  CfnOutput, CfnResource, Fn, RemovalPolicy, Stack, StackProps,
 } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import { AttributeType, BillingMode, Table } from 'aws-cdk-lib/aws-dynamodb';
@@ -8,9 +8,12 @@ import {
 } from 'aws-cdk-lib/aws-cognito';
 import * as CustomResources from 'aws-cdk-lib/custom-resources';
 import * as iam from 'aws-cdk-lib/aws-iam';
-import { Certificate } from 'aws-cdk-lib/aws-certificatemanager';
+import { Certificate, CertificateValidation } from 'aws-cdk-lib/aws-certificatemanager';
 import { StringParameter } from 'aws-cdk-lib/aws-ssm';
+import { ARecord, CfnHealthCheck, CfnRecordSet, HostedZone, RecordTarget } from 'aws-cdk-lib/aws-route53';
+import { Cors, DomainName, EndpointType, LambdaIntegration, RestApi, SecurityPolicy } from 'aws-cdk-lib/aws-apigateway';
 import { SimpleLambda } from './simple-lambda';
+import { ApiGatewayDomain } from 'aws-cdk-lib/aws-route53-targets';
 // import path = require('path');
 
 interface MultiRegionAppStackProps extends StackProps {
@@ -31,10 +34,12 @@ export default class MultiRegionAppStack extends Stack {
       primaryRegion,
       siteDomain,
       siteSubDomain,
+      hostedZoneId,
     } = props;
 
     const { region, account } = Stack.of(this);
     const siteHost = `${siteSubDomain}.${siteDomain}`;
+    const globalSiteHost = `app.${siteDomain}`;
     const tableName = 'UserResidency';
 
     // Cognito User Pool
@@ -210,13 +215,91 @@ export default class MultiRegionAppStack extends Stack {
         replicationRegions: regionCodesToReplicate,
       });
 
-      const customReplicaResource = globalTable.node.children.find((child) => 
-        (child as any).resource?.cfnResourceType === 'Custom::DynamoDBReplica'
-      ) as CfnResource;
+      const customReplicaResource = globalTable.node.children.find((child) => (child as any).resource?.cfnResourceType === 'Custom::DynamoDBReplica') as CfnResource;
 
       customReplicaResource.applyRemovalPolicy(ddbGlobalTableRemovalPolicy);
     } else {
       Table.fromTableName(this, tableName, tableName);
     }
+
+    // Add an API Gateway and Lambda backend stack
+    const zone = HostedZone.fromHostedZoneAttributes(this, 'Zone', {
+      zoneName: siteDomain as string,
+      hostedZoneId: hostedZoneId as string,
+    });
+
+    const regionCertificate = new Certificate(this, 'AppCertificate', {
+      domainName: `${globalSiteHost}`,
+      validation: CertificateValidation.fromDns(zone),
+    });
+
+    const restApi = new RestApi(this, `Api-${region}`, {
+      restApiName: `Api-${region}`,
+      endpointConfiguration: {
+        types: [EndpointType.REGIONAL],
+      },
+      defaultCorsPreflightOptions: {
+        allowOrigins: Cors.ALL_ORIGINS,
+      },
+      deployOptions: {
+        variables: {
+          REGION: region,
+        },
+      },
+    });
+
+    // Add front-end config Lambda Handler
+    const frontendConfigHandlerLambda = new SimpleLambda(this, 'ConfigHandler', {
+      entryFilename: 'config-handler.ts',
+      handler: 'handleEvent',
+      name: 'ConfigHandler',
+      description: 'Handles config metadata for frontend consumption',
+    });
+
+    const frontendConfig = restApi.root.addResource('config');
+
+    frontendConfig.addMethod(
+      'GET',
+      new LambdaIntegration(frontendConfigHandlerLambda.fn, { proxy: true }),
+    );
+
+    const apigwDomainName = new DomainName(this, `${region}DomainName`, {
+      domainName: globalSiteHost,
+      certificate: regionCertificate,
+      securityPolicy: SecurityPolicy.TLS_1_2,
+    });
+
+    apigwDomainName.addBasePathMapping(restApi);
+
+    /*
+    TODO:Route53 Health Checks
+
+    const executeApiDomainName = Fn.join('.', [
+      restApi.restApiId,
+      'execute-api',
+      region,
+      Fn.ref('AWS::URLSuffix'),
+    ]);
+
+    const healthCheck = new CfnHealthCheck(this, `${region}HealthCheck`, {
+      healthCheckConfig: {
+        type: 'HTTPS',
+        fullyQualifiedDomainName: executeApiDomainName,
+        port: 443,
+        resourcePath: `/${restApi.deploymentStage.stageName}/health`,
+      },
+    });
+    */
+
+    const dnsRecord = new ARecord(this, `${region}`, {
+      zone,
+      recordName: globalSiteHost,
+      target: RecordTarget.fromAlias(new ApiGatewayDomain(apigwDomainName)),
+    });
+
+    const recordSet = dnsRecord.node.defaultChild as CfnRecordSet;
+    recordSet.region = region;
+    // recordSet.healthCheckId = healthCheck.attrHealthCheckId;
+    recordSet.setIdentifier = `${region}Api`;
   }
 }

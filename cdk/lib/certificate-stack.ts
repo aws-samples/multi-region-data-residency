@@ -2,8 +2,12 @@ import {
   CfnOutput, Stack, StackProps,
 } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
-import { HostedZone, IHostedZone } from 'aws-cdk-lib/aws-route53';
+import { ARecord, HostedZone, IHostedZone, RecordTarget } from 'aws-cdk-lib/aws-route53';
 import { Certificate, CertificateValidation } from 'aws-cdk-lib/aws-certificatemanager';
+import { Distribution, FunctionEventType } from 'aws-cdk-lib/aws-cloudfront';
+import { HttpOrigin } from 'aws-cdk-lib/aws-cloudfront-origins';
+import * as cloudfront from 'aws-cdk-lib/aws-cloudfront';
+import { CloudFrontTarget } from 'aws-cdk-lib/aws-route53-targets';
 
 interface CertificateStackProps extends StackProps {
   siteDomain: string,
@@ -22,17 +26,19 @@ export default class CertificateStack extends Stack {
     super(scope, id, props);
     const { siteDomain, hostedZoneId } = props;
 
-    this.zone = HostedZone.fromHostedZoneAttributes(this, 'Zone', {
+    const zone = HostedZone.fromHostedZoneAttributes(this, 'Zone', {
       zoneName: siteDomain,
       hostedZoneId,
     });
 
     // TLS certificate
-    this.certificate = new Certificate(this, 'AppCertificate', {
+    const certificate = new Certificate(this, 'AppCertificate', {
       domainName: `*.${siteDomain}`,
-      validation: CertificateValidation.fromDns(this.zone),
+      validation: CertificateValidation.fromDns(zone),
     });
 
-    new CfnOutput(this, 'CertificateArn', { value: this.certificate.certificateArn });
+    new CfnOutput(this, 'CertificateArn', { value: certificate.certificateArn });
+    this.certificate = certificate;
+    this.zone = zone;
   }
 }

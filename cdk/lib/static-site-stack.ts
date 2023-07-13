@@ -80,7 +80,7 @@ export default class StaticSiteStack extends Stack {
     });
     new CfnOutput(this, 'DistributionId', { value: distribution.distributionId });
 
-    // Route53 alias record for the CloudFront distribution
+    // Get Route53 hosted zone for the domain
     const zone = HostedZone.fromHostedZoneAttributes(this, 'Zone', {
       zoneName: siteDomain,
       hostedZoneId,
@@ -92,19 +92,6 @@ export default class StaticSiteStack extends Stack {
       recordName: siteHost,
       target: RecordTarget.fromAlias(new CloudFrontTarget(distribution)),
     });
-
-    // Insert the A record for the global domain e.g. mystartup.com
-    const globalDnsRecord = new ARecord(this, `SiteAliasRecord-${region}`, {
-      zone,
-      recordName: globalSiteHost,
-      target: RecordTarget.fromAlias(new CloudFrontTarget(distribution)),
-    });
-
-    // Insert the configuration for Latency-based Routing
-    // TODO: Switch to geolocation routing
-    const recordSet = globalDnsRecord.node.defaultChild as CfnRecordSet;
-    recordSet.region = region;
-    recordSet.setIdentifier = `Site-${region}`;
 
     // Get Cognito parameters from SSM
     const userPoolId = StringParameter.valueForStringParameter(this, 'CognitoUserPoolId');
