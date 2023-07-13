@@ -10,7 +10,7 @@ import * as CustomResources from 'aws-cdk-lib/custom-resources';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import { Certificate, CertificateValidation } from 'aws-cdk-lib/aws-certificatemanager';
 import { StringParameter } from 'aws-cdk-lib/aws-ssm';
-import { ARecord, CfnHealthCheck, CfnRecordSet, HostedZone, RecordTarget } from 'aws-cdk-lib/aws-route53';
+import { ARecord, CfnRecordSet, HostedZone, RecordTarget } from 'aws-cdk-lib/aws-route53';
 import { Cors, DomainName, EndpointType, LambdaIntegration, RestApi, SecurityPolicy } from 'aws-cdk-lib/aws-apigateway';
 import { SimpleLambda } from './simple-lambda';
 import { ApiGatewayDomain } from 'aws-cdk-lib/aws-route53-targets';
