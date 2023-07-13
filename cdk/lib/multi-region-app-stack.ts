@@ -280,7 +280,7 @@ export default class MultiRegionAppStack extends Stack {
       region,
       Fn.ref('AWS::URLSuffix'),
     ]);
-
+git
     const healthCheck = new CfnHealthCheck(this, `${region}HealthCheck`, {
       healthCheckConfig: {
         type: 'HTTPS',
