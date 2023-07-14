@@ -23,7 +23,6 @@ import { StringParameter } from 'aws-cdk-lib/aws-ssm';
 
 interface StaticSiteProps extends StackProps {
   siteDomain: string,
-  siteSubDomain: string,
   certificate: Certificate,
   hostedZoneId: string,
   userPool?: IUserPool,
@@ -42,18 +41,14 @@ export default class StaticSiteStack extends Stack {
 
     const {
       siteDomain,
-      siteSubDomain,
       hostedZoneId,
       certificate,
     } = props;
 
     const { account, region } = Stack.of(this);
 
-    const siteHost = `${siteSubDomain}.${siteDomain}`;
+    const siteHost = `frontend.${siteDomain}`;
     new CfnOutput(this, 'Site', { value: `https://${siteHost}` });
-
-    const globalSiteHost = `app.${siteDomain}`;
-    new CfnOutput(this, 'GlobalSite', { value: `https://${globalSiteHost}` });
 
     // Content bucket
     const bucket = new Bucket(this, 'StaticSiteBucket', {
@@ -86,7 +81,7 @@ export default class StaticSiteStack extends Stack {
       hostedZoneId,
     });
 
-    // Insert the A record for the region-based domain e.g. ap-southeast-2.mystartup.com
+    // Insert the A record e.g. frontend.mystartup.com
     new ARecord(this, `SiteRegionRecord-${region}`, {
       zone,
       recordName: siteHost,

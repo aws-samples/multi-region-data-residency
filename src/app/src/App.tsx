@@ -31,7 +31,6 @@ const getRegionFromCountry = (country: string) : string => {
 }
 
 export default function App() {
-  const [siteDomain, setSiteDomain] = useState('mystartup.com');
   const [region, setRegion] = useState('');
   const [stackCountry, setStackCountry] = useState('');
   const [country, setCountry] = useState('');
@@ -39,11 +38,18 @@ export default function App() {
   // Configure runtime Config to integrate with CDK
   // Source: https://dev.to/aws-builders/aws-cdk-and-amplify-runtime-config-1md2
   Amplify.configure(awsExports);
+
+  // Get current host URL
+  const hostSplit = window.location.host.split('.');
+
+  // Get site domain based on host, strip sub-domain
+  var siteDomain = hostSplit.slice(1, hostSplit.length).join('.');
+
   const fetchConfig = () => { 
-    fetch('/config.json')
+    fetch(`https://app.${siteDomain}/config`)
     .then((response) => response.status === 200 && response.json())
     .then((context) => {
-      const { siteDomain, region, userPoolId, userPoolClientId } = context;
+      const { region, userPoolId, userPoolClientId } = context;
       const runtimeConfig = {
         "aws_project_region": region,
         "aws_cognito_region": region,
@@ -52,7 +58,6 @@ export default function App() {
       }
       const mergedConfig = { ...awsExports, ...runtimeConfig  };
       const setCountryBasedOnRegion = getCountryFromRegion(region);
-      setSiteDomain(siteDomain);
       setRegion(region);
       setStackCountry(setCountryBasedOnRegion);
       setCountry(setCountryBasedOnRegion);
@@ -73,6 +78,7 @@ export default function App() {
 
   const CountryWarning = (props: { country: string, stackCountry: string }) => {
     const { country, stackCountry } = props;
+    // TODO: This should no longer link to the country website but configure the front-end to connect to the regional backend
     const countryWebsite = `https://${getRegionFromCountry(country)}.${siteDomain}/`; 
     if ( country !== stackCountry )
       return(

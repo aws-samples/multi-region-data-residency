@@ -57,7 +57,6 @@ new StaticSiteStack(app, `App-Frontend-${primaryRegion}`, {
   },
   crossRegionReferences: true,
   siteDomain,
-  siteSubDomain: primaryRegion,
   hostedZoneId,
   certificate,
 });

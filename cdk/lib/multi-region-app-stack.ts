@@ -40,6 +40,7 @@ export default class MultiRegionAppStack extends Stack {
     const { region, account } = Stack.of(this);
     const siteHost = `${siteSubDomain}.${siteDomain}`;
     const globalSiteHost = `app.${siteDomain}`;
+    const frontendSiteHost = `frontend.${siteDomain}`;
     const tableName = 'UserResidency';
 
     // Cognito User Pool
@@ -111,7 +112,7 @@ export default class MultiRegionAppStack extends Stack {
       userPool,
       oAuth: {
         callbackUrls: [
-          `https://${siteHost}`,
+          `https://${frontendSiteHost}`,
           'http://localhost:3000/',
         ],
       },
@@ -256,6 +257,12 @@ export default class MultiRegionAppStack extends Stack {
       description: 'Handles config metadata for frontend consumption',
     });
 
+    // Add SSM access to frontendConfigHandlerLambda.fn Service Role
+    frontendConfigHandlerLambda.fn.addToRolePolicy(new iam.PolicyStatement({
+      actions: ['ssm:GetParameter', 'ssm:GetParameters', 'ssm:GetParametersByPath'],
+      resources: ['*'],
+    }));
+
     const frontendConfig = restApi.root.addResource('config');
 
     frontendConfig.addMethod(
@@ -263,13 +270,20 @@ export default class MultiRegionAppStack extends Stack {
       new LambdaIntegration(frontendConfigHandlerLambda.fn, { proxy: true }),
     );
 
-    const apigwDomainName = new DomainName(this, `${region}DomainName`, {
+    const apigwGlobalDomainName = new DomainName(this, `${region}DomainName`, {
       domainName: globalSiteHost,
       certificate: regionCertificate,
       securityPolicy: SecurityPolicy.TLS_1_2,
     });
 
-    apigwDomainName.addBasePathMapping(restApi);
+    const apigwRegionalDomainName = new DomainName(this, `${region}DomainName-Regional`, {
+      domainName: siteHost,
+      certificate: regionCertificate,
+      securityPolicy: SecurityPolicy.TLS_1_2,
+    });
+
+    apigwGlobalDomainName.addBasePathMapping(restApi);
+    apigwRegionalDomainName.addBasePathMapping(restApi);
 
     /*
     TODO:Route53 Health Checks
@@ -280,7 +294,7 @@ export default class MultiRegionAppStack extends Stack {
       region,
       Fn.ref('AWS::URLSuffix'),
     ]);
-git
+
     const healthCheck = new CfnHealthCheck(this, `${region}HealthCheck`, {
       healthCheckConfig: {
         type: 'HTTPS',
@@ -291,15 +305,22 @@ git
     });
     */
 
-    const dnsRecord = new ARecord(this, `${region}`, {
+    const dnsRecord = new ARecord(this, `Api-${region}-Global`, {
       zone,
       recordName: globalSiteHost,
-      target: RecordTarget.fromAlias(new ApiGatewayDomain(apigwDomainName)),
+      target: RecordTarget.fromAlias(new ApiGatewayDomain(apigwGlobalDomainName)),
     });
 
     const recordSet = dnsRecord.node.defaultChild as CfnRecordSet;
     recordSet.region = region;
     // recordSet.healthCheckId = healthCheck.attrHealthCheckId;
     recordSet.setIdentifier = `${region}Api`;
+
+    // Add the regional domain name for direct access without latency routing
+    new ARecord(this, `Api-${region}-Region`, {
+      zone,
+      recordName: siteHost,
+      target: RecordTarget.fromAlias(new ApiGatewayDomain(apigwGlobalDomainName)),
+    });
   }
 }

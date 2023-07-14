@@ -112,13 +112,13 @@ cdk deploy --all
 
 #### 6. Test the application
 
-Connect to the test application and login using sample users:
+Connect to the test application e.g. `frontend.mystartup.com` and login using sample users:
 
 ```
 
 ```
 
-Logging in 
+The frontend should be connected to the regional backend API on `app.mystartup.com`.
 
 ## Cleaning up
 
@@ -129,6 +129,8 @@ Run the following command to shut down the resources created in this workshop.
 ```
 cdk destroy --all
 ```
+
+There may also some resources that will need to be deleted manually (such as the DynamoDB Global Table).
 
 ## Security
 
