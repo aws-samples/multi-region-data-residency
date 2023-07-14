@@ -10,7 +10,7 @@ For more details, see [Video: Architectures to Scale Your Startup to Multiple Re
 
 ![Multi Region Data Residency Architecture](assets/imgs/multi-region-data-residency-architecture.png)
 
-The solution has a front-end React application which is deployed to a single (primary) region with CloudFront for caching and global edge locations to reduce end-user latency. By default, the application will connect the global API backend (e.g. `app.mystartup.com`) which will automatically route to the user's closest region. However, this can be over-riden and connect to the regional backend via `<region>.mystartuo.com`.  
+In addition to the multi-region API backend illustrated above, the solution also come with a front-end React application. The frontend is deployed to a single (primary) region with CloudFront for caching and global edge locations to reduce end-user latency. By default, the application will connect the global API backend (e.g. `app.mystartup.com`) which will automatically route to the user's closest region. However, the React application has a 'country' switcher which will connect to the corresponding backend via `<region>.mystartup.com`.  
 
 ### Prerequisites
 
