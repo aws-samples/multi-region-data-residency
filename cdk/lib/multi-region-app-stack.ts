@@ -230,7 +230,7 @@ export default class MultiRegionAppStack extends Stack {
     });
 
     const regionCertificate = new Certificate(this, 'AppCertificate', {
-      domainName: `${globalSiteHost}`,
+      domainName: `*.${siteDomain}`,
       validation: CertificateValidation.fromDns(zone),
     });
 
@@ -304,7 +304,6 @@ export default class MultiRegionAppStack extends Stack {
       },
     });
     */
-
     const dnsRecord = new ARecord(this, `Api-${region}-Global`, {
       zone,
       recordName: globalSiteHost,
@@ -314,7 +313,7 @@ export default class MultiRegionAppStack extends Stack {
     const recordSet = dnsRecord.node.defaultChild as CfnRecordSet;
     recordSet.region = region;
     // recordSet.healthCheckId = healthCheck.attrHealthCheckId;
-    recordSet.setIdentifier = `${region}Api`;
+    recordSet.setIdentifier = `Api-${region}`;
 
     // Add the regional domain name for direct access without latency routing
     new ARecord(this, `Api-${region}-Region`, {
