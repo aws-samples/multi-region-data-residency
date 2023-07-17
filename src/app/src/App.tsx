@@ -43,18 +43,18 @@ export default function App() {
   const hostSplit = window.location.host.split('.');
 
   // Get site domain based on host, strip sub-domain
-  var siteDomain = hostSplit.slice(1, hostSplit.length).join('.');
+  const siteDomain = hostSplit.slice(1, hostSplit.length).join('.');
 
   const fetchConfig = () => { 
     fetch(`https://app.${siteDomain}/config`)
     .then((response) => response.status === 200 && response.json())
     .then((context) => {
-      const { region, userPoolId, userPoolClientId } = context;
+      const { region, cognitoUserPoolId, cognitoUserPoolClientId } = context;
       const runtimeConfig = {
         "aws_project_region": region,
         "aws_cognito_region": region,
-        "aws_user_pools_id": userPoolId,
-        "aws_user_pools_web_client_id": userPoolClientId,
+        "aws_user_pools_id": cognitoUserPoolId,
+        "aws_user_pools_web_client_id": cognitoUserPoolClientId,
       }
       const mergedConfig = { ...awsExports, ...runtimeConfig  };
       const setCountryBasedOnRegion = getCountryFromRegion(region);
