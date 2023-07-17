@@ -13,16 +13,16 @@ export async function handleEvent(event: any) {
     });
 
     const ssmRequest = new GetParametersCommand({ Names: [
-        'CognitoUserPoolId',
         'CognitoUserPoolClientId',
+        'CognitoUserPoolId',
     ]});
     const ssmResponse = await ssm.send(ssmRequest);
     const parameters = ssmResponse.Parameters;
 
     const responseBody = {
         region,
-        cognitoUserPoolId: parameters && parameters[0].Value || '', 
-        cognitoUserPoolClientId: parameters && parameters[1].Value || '', 
+        cognitoUserPoolClientId: parameters ? parameters[0].Value : '', 
+        cognitoUserPoolId: parameters ? parameters[1].Value : '', 
     };
     
     const response = {
