@@ -140,7 +140,7 @@ export default class MultiRegionAppStack extends Stack {
       stringValue: userPoolClient.userPoolClientId,
     });
 
-    // Add pre-signup Lambda Handler
+    // Add pre-Auth Lambda Handler
     const preAuthHandlerLambda = new SimpleLambda(this, 'PreAuthHandler', {
       entryFilename: 'pre-auth-handler.ts',
       handler: 'handleEvent',
@@ -150,6 +150,17 @@ export default class MultiRegionAppStack extends Stack {
         USER_RESIDENCY_TABLE: tableName,
       },
     });
+
+    // IAM role for Pre-Auth
+    preAuthHandlerLambda.fn.addToRolePolicy(new iam.PolicyStatement(
+      {
+        actions: ['dynamodb:GetItem'],
+        resources: [
+          `arn:aws:dynamodb:${region}:${account}:table/${tableName}`,
+          `arn:aws:dynamodb:${region}:${account}:table/${tableName}/*`,
+        ],
+      },
+    ));
 
     // Add pre-signup Lambda Handler
     const preSignUpHandlerLambda = new SimpleLambda(this, 'PreSignUpHandler', {
