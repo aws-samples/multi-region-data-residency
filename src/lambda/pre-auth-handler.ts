@@ -1,6 +1,5 @@
 import crypto from 'crypto';
-import { DynamoDBClient, GetItemCommand } from '@aws-sdk/client-dynamodb';
-
+import { DynamoDBClient, QueryCommand } from '@aws-sdk/client-dynamodb';
 
 export async function handleEvent(event: any) {
     console.log('Pre Auth Handler - Received event ', event);
@@ -15,16 +14,23 @@ export async function handleEvent(event: any) {
     // Get DynamoDB record in UserResidency table based on emailHash
     const dynamoDBClient = new DynamoDBClient({ region });
     const userResidencyTable = process.env.USER_RESIDENCY_TABLE;
-    const userResidencyItem = await dynamoDBClient.send(new GetItemCommand({
+    
+    const command = new QueryCommand({
+        KeyConditionExpression: "UserId = :userId",
+        ExpressionAttributeValues: {
+          ":userId": { S: emailHash },
+        },
         TableName: userResidencyTable,
-        Key: {
-            userId: { S: emailHash }
-        }
-    }));
+      });
+    
+      const response = await dynamoDBClient.send(command);
 
-    console.log(userResidencyItem);
+      let userRegion = '';
+      response.Items?.forEach((user) => {
+        userRegion = user.region.S as string;
+      });
 
-    if ( userResidencyItem && userResidencyItem.Item?.region != region ) {
+    if ( response.Items && userRegion !== region  ) {
         throw new Error("You account is not associated with this region. Please ensure that you are in the correct region.");
     }
 

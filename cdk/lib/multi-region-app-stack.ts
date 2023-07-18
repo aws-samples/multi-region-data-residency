@@ -154,7 +154,7 @@ export default class MultiRegionAppStack extends Stack {
     // IAM role for Pre-Auth
     preAuthHandlerLambda.fn.addToRolePolicy(new iam.PolicyStatement(
       {
-        actions: ['dynamodb:GetItem'],
+        actions: ['dynamodb:Query'],
         resources: [
           `arn:aws:dynamodb:${region}:${account}:table/${tableName}`,
           `arn:aws:dynamodb:${region}:${account}:table/${tableName}/*`,
