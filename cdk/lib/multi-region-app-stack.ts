@@ -146,6 +146,9 @@ export default class MultiRegionAppStack extends Stack {
       handler: 'handleEvent',
       name: 'PreAuthHandler',
       description: 'Handles Amazon Cognito pre auth Lambda trigger',
+      envVariables: {
+        USER_RESIDENCY_TABLE: tableName,
+      },
     });
 
     // Add pre-signup Lambda Handler
