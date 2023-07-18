@@ -1,5 +1,5 @@
 import {
-  CfnOutput, RemovalPolicy, Stack, StackProps, Fn,
+  CfnOutput, RemovalPolicy, Stack, StackProps, Fn, Duration,
 } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import {
@@ -8,7 +8,9 @@ import {
 import { S3Origin } from 'aws-cdk-lib/aws-cloudfront-origins';
 import { CloudFrontTarget } from 'aws-cdk-lib/aws-route53-targets';
 import { Certificate } from 'aws-cdk-lib/aws-certificatemanager';
-import { AllowedMethods, Distribution, IDistribution, SecurityPolicyProtocol, ViewerProtocolPolicy } from 'aws-cdk-lib/aws-cloudfront';
+import {
+  AllowedMethods, Distribution, HeadersFrameOption, HeadersReferrerPolicy, IDistribution, ResponseHeadersPolicy, SecurityPolicyProtocol, ViewerProtocolPolicy,
+} from 'aws-cdk-lib/aws-cloudfront';
 import { BlockPublicAccess, Bucket, IBucket } from 'aws-cdk-lib/aws-s3';
 import { BucketDeployment, Source } from 'aws-cdk-lib/aws-s3-deployment';
 import { IUserPool, IUserPoolClient } from 'aws-cdk-lib/aws-cognito';
@@ -60,6 +62,39 @@ export default class StaticSiteStack extends Stack {
     });
     new CfnOutput(this, 'StaticSiteBucketArn', { value: bucket.bucketArn });
 
+    // Secure static website
+    const responseHeadersPolicy = new ResponseHeadersPolicy(this, 'SecurityHeadersResponseHeaderPolicy', {
+      comment: 'Security headers response header policy',
+      securityHeadersBehavior: {
+        contentSecurityPolicy: {
+          override: true,
+          contentSecurityPolicy: "default-src 'self'",
+        },
+        strictTransportSecurity: {
+          override: true,
+          accessControlMaxAge: Duration.days(2 * 365),
+          includeSubdomains: true,
+          preload: true,
+        },
+        contentTypeOptions: {
+          override: true,
+        },
+        referrerPolicy: {
+          override: true,
+          referrerPolicy: HeadersReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN,
+        },
+        xssProtection: {
+          override: true,
+          protection: true,
+          modeBlock: true,
+        },
+        frameOptions: {
+          override: true,
+          frameOption: HeadersFrameOption.DENY,
+        },
+      },
+    });
+
     // CloudFront distribution
     const distribution = new Distribution(this, 'SiteDistribution', {
       certificate,
@@ -71,6 +106,7 @@ export default class StaticSiteStack extends Stack {
         compress: true,
         allowedMethods: AllowedMethods.ALLOW_GET_HEAD_OPTIONS,
         viewerProtocolPolicy: ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+        responseHeadersPolicy,
       },
     });
     new CfnOutput(this, 'DistributionId', { value: distribution.distributionId });
