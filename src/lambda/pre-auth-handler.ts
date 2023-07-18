@@ -16,7 +16,7 @@ export async function handleEvent(event: any) {
     const userResidencyTable = process.env.USER_RESIDENCY_TABLE;
     
     const command = new QueryCommand({
-        KeyConditionExpression: "UserId = :userId",
+        KeyConditionExpression: "userId = :userId",
         ExpressionAttributeValues: {
           ":userId": { S: emailHash },
         },
