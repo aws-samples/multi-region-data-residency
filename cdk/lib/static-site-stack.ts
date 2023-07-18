@@ -68,7 +68,7 @@ export default class StaticSiteStack extends Stack {
       securityHeadersBehavior: {
         contentSecurityPolicy: {
           override: true,
-          contentSecurityPolicy: "default-src 'self'",
+          contentSecurityPolicy: `default-src 'self' *.${siteDomain}`,
         },
         strictTransportSecurity: {
           override: true,
