@@ -97,28 +97,12 @@ export default function App() {
     stackCountry === 'Singapore' ? '🇸🇬' : 
     '';
 
-  const CountryWarning = (props: { country: string, stackCountry: string }) => {
-    const { country, stackCountry } = props;
-    // TODO: This should no longer link to the country website but configure the front-end to connect to the regional backend
-    const countryWebsite = `https://${getRegionFromCountry(country)}.${siteDomain}/`; 
-    if ( country !== stackCountry )
-      return(
-        <>
-          <Alert variation="warning">
-            You are signing up to our {stackCountry} website. Please select <b>{stackCountry}</b> to continue or sign up separately on our <a rel="noreferrer" target="_blank" href={countryWebsite}>{country}</a> website.
-          </Alert>
-        </>
-      );
-    else
-      return <></>
-  }
-
   const SignUpFormFields = {
     FormFields() {
       const { validationErrors } = useAuthenticator();
 
       const handleSelectCountryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        setCountry(e.target.value);
+        switchRegion(getRegionFromCountry(e.target.value), e.target.value);
       }
       const selectCountryHasError = !!validationErrors.country;
       const selectCountryErrorMessage = validationErrors.country as string;
@@ -138,12 +122,8 @@ export default function App() {
             label="Country"
           >
             <option>Australia</option>
-            <option>United Kingdom</option>
             <option>United States</option>
-            <option>Singapore</option>
           </SelectField>
-
-          <CountryWarning country={country} stackCountry={stackCountry} />
         </>
       );
     },
@@ -161,7 +141,7 @@ export default function App() {
           Switch Country: &nbsp;
           <a href="#" onClick={() => switchRegion("")}>Default</a> |&nbsp;
           <a href="#" onClick={() => switchRegion("ap-southeast-2", "Australia")}>Australia</a> |&nbsp;
-          <a href="#" onClick={() => switchRegion("eu-west-2", "United Kingdom")}>United Kingdom</a>
+          <a href="#" onClick={() => switchRegion("-2", "United States")}>United Kingdom</a>
         </div>
       </div>
 
