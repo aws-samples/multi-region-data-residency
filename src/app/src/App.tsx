@@ -34,13 +34,6 @@ export default function App() {
 
   // Get current host URL
   let host = window.location.host;
-
-  console.log(host);
-
-  if ( host === 'localhost:3000' ) {
-    host = 'frontend.aws.wirjo.com';
-  }
-
   const hostSplit = host.split('.');
 
   // Get site domain based on host, strip sub-domain
