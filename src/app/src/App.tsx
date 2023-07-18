@@ -141,7 +141,7 @@ export default function App() {
           Switch Country: &nbsp;
           <a href="#" onClick={() => switchRegion("")}>Default</a> |&nbsp;
           <a href="#" onClick={() => switchRegion("ap-southeast-2", "Australia")}>Australia</a> |&nbsp;
-          <a href="#" onClick={() => switchRegion("-2", "United States")}>United Kingdom</a>
+          <a href="#" onClick={() => switchRegion("us-east-2", "United States")}>United States</a>
         </div>
       </div>
 
