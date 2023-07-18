@@ -164,8 +164,8 @@ export default class MultiRegionAppStack extends Stack {
       {
         actions: ['dynamodb:PutItem'],
         resources: [
-          `arn:aws:dynamodb:${primaryRegion}:${account}:table/${tableName}`,
-          `arn:aws:dynamodb:${primaryRegion}:${account}:table/${tableName}/*`,
+          `arn:aws:dynamodb:${region}:${account}:table/${tableName}`,
+          `arn:aws:dynamodb:${region}:${account}:table/${tableName}/*`,
         ],
       },
     ));
