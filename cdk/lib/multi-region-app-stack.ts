@@ -118,6 +118,7 @@ export default class MultiRegionAppStack extends Stack {
       },
       readAttributes: clientReadAttributes,
       writeAttributes: clientWriteAttributes,
+      preventUserExistenceErrors: true,
     });
 
     new CfnOutput(this, 'CognitoUserPoolId', {

@@ -8,7 +8,7 @@ export async function handleEvent(event: any) {
     const region = event.region;
 
     // Hash user email string
-    const email = event.request.userAttributes.email;
+    const email = event.userName;
     const emailHash = crypto.createHash('md5').update(email).digest("hex");
 
     // Get DynamoDB record in UserResidency table based on emailHash
@@ -31,7 +31,7 @@ export async function handleEvent(event: any) {
       });
 
     if ( response.Items && userRegion !== region  ) {
-        throw new Error("You account is not associated with this region. Please ensure that you are in the correct region.");
+        throw new Error("You account is not associated with this region. Please login to the correct region");
     }
 
     return event;
