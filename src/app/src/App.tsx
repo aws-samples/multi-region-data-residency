@@ -1,9 +1,10 @@
 import { Amplify } from 'aws-amplify';
 
-import { Alert, Authenticator, Button, Heading, SelectField, useAuthenticator } from '@aws-amplify/ui-react';
+import { Authenticator, Button, Heading, SelectField, useAuthenticator } from '@aws-amplify/ui-react';
 import '@aws-amplify/ui-react/styles.css';
 import awsExports from './aws-exports';
 import { useEffect, useState } from 'react';
+import { FaGithub } from 'react-icons/fa';
 
 // TODO: Globalize country to region mapping (e.g. via CDK)
 let countryToRegion : {[key: string]: string};
@@ -165,6 +166,13 @@ export default function App() {
           </main>
         )}
       </Authenticator>
+
+      <div style={{ textAlign: 'center', padding: '40px', margin: '0 auto' }}>
+        <a rel="noreferrer" target="_blank" href="https://github.com/aws-samples/multi-region-data-residency" style={{ textDecoration: 'none' }}>
+         <FaGithub /> Source Code
+        </a>
+      </div>
+
     </div>
   );
 }
