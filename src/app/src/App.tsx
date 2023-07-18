@@ -31,22 +31,33 @@ const getRegionFromCountry = (country: string) : string => {
 }
 
 export default function App() {
+
+  // Get current host URL
+  let host = window.location.host;
+
+  console.log(host);
+
+  if ( host === 'localhost:3000' ) {
+    host = 'frontend.aws.wirjo.com';
+  }
+
+  const hostSplit = host.split('.');
+
+  // Get site domain based on host, strip sub-domain
+  const siteDomain = hostSplit.slice(1, hostSplit.length).join('.');
+
+  // React states for hooks
   const [region, setRegion] = useState('');
   const [stackCountry, setStackCountry] = useState('');
   const [country, setCountry] = useState('');
+  const [apiUrl, setApiUrl] = useState(`https://app.${siteDomain}`);
 
   // Configure runtime Config to integrate with CDK
   // Source: https://dev.to/aws-builders/aws-cdk-and-amplify-runtime-config-1md2
   Amplify.configure(awsExports);
 
-  // Get current host URL
-  const hostSplit = window.location.host.split('.');
-
-  // Get site domain based on host, strip sub-domain
-  const siteDomain = hostSplit.slice(1, hostSplit.length).join('.');
-
-  const fetchConfig = () => { 
-    fetch(`https://app.${siteDomain}/config`)
+  const fetchConfig = (apiUrl: string) => { 
+    fetch(`${apiUrl}/config`)
     .then((response) => response.status === 200 && response.json())
     .then((context) => {
       const { region, cognitoUserPoolId, cognitoUserPoolClientId } = context;
@@ -65,7 +76,24 @@ export default function App() {
     })
     .catch((e) => console.log('Cannot fetch config.json'));
   }
-  useEffect(fetchConfig, []);
+
+  useEffect(() => fetchConfig(apiUrl), [apiUrl]);
+
+  // Function to switch API region
+  const switchRegion = (region: string = '', country: string = '') => {
+    if ( region === '' ) {
+      setApiUrl(`https://app.${siteDomain}`);
+      setRegion(region);
+    } else {
+      setApiUrl(`https://${region}.${siteDomain}`);
+      setRegion(region);
+    }
+
+    if ( country ) {
+      setCountry(country);
+      setStackCountry(country);
+    }
+  }
 
   // Fun: Emoji visualiation for country
   // (Thanks to Amazon CodeWhisperer)
@@ -135,6 +163,13 @@ export default function App() {
         <Heading level={1} style={{ marginBottom: '10px' }}>Multi-Region Demo </Heading>
         <Heading level={4}>{stackCountry} {stackCountryEmoji}</Heading>
         <div style={{ marginTop: '8px', fontSize: '14px', color: 'gray' }}>AWS Region: {region}</div>
+        <div style={{ marginTop: '8px', fontSize: '14px', color: 'gray' }}>API Endpoint: {apiUrl}</div>
+        <div style={{ marginTop: '8px', fontSize: '14px', color: 'gray' }}>
+          Switch Country: &nbsp;
+          <a href="#" onClick={() => switchRegion("")}>Default</a> |&nbsp;
+          <a href="#" onClick={() => switchRegion("ap-southeast-2", "Australia")}>Australia</a> |&nbsp;
+          <a href="#" onClick={() => switchRegion("eu-west-2", "United Kingdom")}>United Kingdom</a>
+        </div>
       </div>
 
       <Authenticator
