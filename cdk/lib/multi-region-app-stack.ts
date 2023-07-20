@@ -1,5 +1,5 @@
 import {
-  CfnOutput, CfnResource, Fn, RemovalPolicy, Stack, StackProps,
+  CfnOutput, CfnResource, RemovalPolicy, Stack, StackProps,
 } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import { AttributeType, BillingMode, Table } from 'aws-cdk-lib/aws-dynamodb';
@@ -12,9 +12,8 @@ import { Certificate, CertificateValidation } from 'aws-cdk-lib/aws-certificatem
 import { StringParameter } from 'aws-cdk-lib/aws-ssm';
 import { ARecord, CfnRecordSet, HostedZone, RecordTarget } from 'aws-cdk-lib/aws-route53';
 import { Cors, DomainName, EndpointType, LambdaIntegration, RestApi, SecurityPolicy } from 'aws-cdk-lib/aws-apigateway';
-import { SimpleLambda } from './simple-lambda';
 import { ApiGatewayDomain } from 'aws-cdk-lib/aws-route53-targets';
-// import path = require('path');
+import { SimpleLambda } from './simple-lambda';
 
 interface MultiRegionAppStackProps extends StackProps {
   regionCodesToReplicate: string[],
@@ -274,7 +273,7 @@ export default class MultiRegionAppStack extends Stack {
 
     // Add SSM access to frontendConfigHandlerLambda.fn Service Role
     frontendConfigHandlerLambda.fn.addToRolePolicy(new iam.PolicyStatement({
-      actions: ['ssm:GetParameter', 'ssm:GetParameters', 'ssm:GetParametersByPath'],
+      actions: ['ssm:GetParameters'],
       resources: ['*'],
     }));
 

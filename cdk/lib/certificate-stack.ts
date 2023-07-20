@@ -2,12 +2,8 @@ import {
   CfnOutput, Stack, StackProps,
 } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
-import { ARecord, HostedZone, IHostedZone, RecordTarget } from 'aws-cdk-lib/aws-route53';
+import { HostedZone, IHostedZone } from 'aws-cdk-lib/aws-route53';
 import { Certificate, CertificateValidation } from 'aws-cdk-lib/aws-certificatemanager';
-import { Distribution, FunctionEventType } from 'aws-cdk-lib/aws-cloudfront';
-import { HttpOrigin } from 'aws-cdk-lib/aws-cloudfront-origins';
-import * as cloudfront from 'aws-cdk-lib/aws-cloudfront';
-import { CloudFrontTarget } from 'aws-cdk-lib/aws-route53-targets';
 
 interface CertificateStackProps extends StackProps {
   siteDomain: string,
