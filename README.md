@@ -14,7 +14,7 @@ For more details, see [Video: Architectures to Scale Your Startup to Multiple Re
 
 In addition to the multi-region API, the solution also comes with a front-end React application: 
 
-* **Single-region with global edge:** It is deployed to a single (primary) region with CloudFront for caching and global edge locations to reduce end-user latency.
+* **Single-region with global edge:** The front-end is deployed to a single (primary) region with CloudFront for caching and global edge locations to reduce end-user latency.
 * **User interface (powered by Amplify UI)**: The login and sign up experience is built using the [Authenticator](https://ui.docs.amplify.aws/react/connected-components/authenticator) Amplify UI React component. This accelerates the addition of complete authentication flows to your application with minimal boilerplate.
 * **Global API:** By default, it will connect the global API (e.g. `app.mystartup.com`) which will automatically route to the user's closest region using Amazon Route 53 [Latency-based routing](https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/routing-policy-latency.html). 
 * **Switching countries:** In addition, the application allows you to switch countries and connect to the corresponding backend via `<region>.mystartup.com`. This is done by fetching the region configuration from the `/config/` API endpoint and `Amplify.configure()`.
@@ -76,10 +76,10 @@ Note the `Hosted zone ID` which will be used in the following step.
 
 Before deploying the CDK stack the following environment variables need to be defined.
 
-Regions - Define which regions to deploy the multi-region stack, by default we will deploy to the ap-southeast-2 (Sydney), us-east-2 (Ohio) and eu-west-1 (N. California) for the demonstration.
+Regions - Define which regions to deploy the multi-region stack, for demonstrative purposes, we will deploy to the ap-southeast-2 (Sydney), us-east-2 (Ohio) regions. (This will be displayed as Australia and United States respectively in the user interface on `/src/app/App.tsx`.)
 
 ```
-export REGIONS="ap-southeast-2, us-east-1, eu-west-1"
+export REGIONS="ap-southeast-2, us-east-2"
 ```
 
 Hosted Zone Id - Specify the hosted zone ID from step 4
@@ -121,14 +121,7 @@ cdk deploy --all
 
 #### 6. Test the application
 
-Connect to the test application e.g. `frontend.mystartup.com` and login using sample users:
-
-```
-
-```
-
-The frontend should be connected to the regional backend API on `app.mystartup.com`.
-
+Connect to the test application e.g. `frontend.mystartup.com`
 ## Cleaning up
 
 When you are done, make sure to clean everything up.

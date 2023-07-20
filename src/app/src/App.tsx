@@ -1,5 +1,4 @@
 import { Amplify } from 'aws-amplify';
-
 import { Authenticator, Button, Heading, SelectField, useAuthenticator } from '@aws-amplify/ui-react';
 import '@aws-amplify/ui-react/styles.css';
 import awsExports from './aws-exports';
@@ -10,9 +9,7 @@ import { FaGithub } from 'react-icons/fa';
 let countryToRegion : {[key: string]: string};
 
 countryToRegion = {
-  'Singapore': 'ap-southeast-1', 
   'Australia': 'ap-southeast-2',
-  'United Kingdom': 'eu-west-1',
   'United States': 'us-east-2',
 };
 
@@ -89,7 +86,7 @@ export default function App() {
     }
   }
 
-  // Fun: Emoji visualiation for country
+  // Fun: Emoji visualization for country
   // (Thanks to Amazon CodeWhisperer)
   const stackCountryEmoji = 
     stackCountry === 'Australia' ? '🇦🇺' : 
@@ -141,8 +138,8 @@ export default function App() {
         <div style={{ marginTop: '8px', fontSize: '14px', color: 'gray' }}>
           Switch Country: &nbsp;
           <a href="#" onClick={() => switchRegion("")}>Default</a> |&nbsp;
-          <a href="#" onClick={() => switchRegion("ap-southeast-2", "Australia")}>Australia</a> |&nbsp;
-          <a href="#" onClick={() => switchRegion("us-east-2", "United States")}>United States</a>
+          <a href="#" onClick={() => switchRegion("ap-southeast-2", getCountryFromRegion("ap-southeast-2"))}>Australia</a> |&nbsp;
+          <a href="#" onClick={() => switchRegion("us-east-2", getCountryFromRegion("us-east-2"))}>United States</a>
         </div>
       </div>
 
