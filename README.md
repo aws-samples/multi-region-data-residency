@@ -10,12 +10,16 @@ For more details, see [Video: Architectures to Scale Your Startup to Multiple Re
 
 ![Multi Region Data Residency Architecture](assets/imgs/multi-region-data-residency-architecture.png)
 
+* The solution is for demonstrative purposes only. For production use, please ensure that you consider additional security, such as [MFA](https://docs.aws.amazon.com/cognito/latest/developerguide/user-pool-settings-mfa.html).
+
+* The solution will incur costs associated with the resources. To minimize costs, ensure that you clean up after deployment.
+
 ### Front-end React Application
 
-In addition to the multi-region API, the solution also comes with a front-end React application: 
+In addition to the global API, the repository also comes with a front-end React application: 
 
 * **Single-region with global edge:** The front-end is deployed to a single (primary) region with CloudFront for caching and global edge locations to reduce end-user latency.
-* **User interface (powered by Amplify UI)**: The login and sign up experience is built using the [Authenticator](https://ui.docs.amplify.aws/react/connected-components/authenticator) Amplify UI React component. This accelerates the addition of complete authentication flows to your application with minimal boilerplate.
+* **User interface (powered by Amplify UI)**: The login and sign up experience is built using the [Authenticator](https://ui.docs.amplify.aws/react/connected-components/authenticator) Amplify UI component. This accelerates the addition of complete authentication flows to your application with minimal boilerplate.
 * **Global API:** By default, it will connect the global API (e.g. `app.mystartup.com`) which will automatically route to the user's closest region using Amazon Route 53 [Latency-based routing](https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/routing-policy-latency.html). 
 * **Switching countries:** In addition, the application allows you to switch countries and connect to the corresponding backend via `<region>.mystartup.com`. This is done by fetching the region configuration from the `/config/` API endpoint and `Amplify.configure()`.
 
@@ -24,7 +28,7 @@ In addition to the multi-region API, the solution also comes with a front-end Re
 - An [AWS account](https://portal.aws.amazon.com/billing/signup#/start)
 - Installed and authenticated [AWS CLI](https://docs.aws.amazon.com/en_pv/cli/latest/userguide/cli-chap-install.html) (authenticate with an [IAM](https://docs.aws.amazon.com/IAM/latest/UserGuide/getting-started.html) user or an [AWS STS](https://docs.aws.amazon.com/STS/latest/APIReference/Welcome.html) Security Token)
 - Installed and setup [AWS Cloud Development Kit (AWS CDK)](https://docs.aws.amazon.com/cdk/latest/guide/getting_started.html)
-- Installed Node.js, TypeScript and git
+- Installed Node.js, TypeScript and git 
 
 ### Let’s get you started
 
